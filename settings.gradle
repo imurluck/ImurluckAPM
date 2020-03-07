@@ -1,0 +1,12 @@
+
+def PROJECT_APP = ':app'
+def PROJECT_CORE = ':core'
+def PROJECT_MONITOR_FPS = ':monitor-fps'
+
+include PROJECT_APP
+include PROJECT_CORE
+include PROJECT_MONITOR_FPS
+
+project(PROJECT_MONITOR_FPS).projectDir = new File(getRootDir(), 'monitor/monitor-fps')
+
+rootProject.name='ImurluckAPM'
