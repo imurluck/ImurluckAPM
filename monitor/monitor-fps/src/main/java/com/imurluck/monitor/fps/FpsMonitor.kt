@@ -1,12 +1,15 @@
 package com.imurluck.monitor.fps
 
 import android.app.Application
+import android.os.Handler
 import android.os.Looper
 import android.view.Choreographer
 import com.imurluck.apm.core.extensions.*
 import com.imurluck.apm.core.log.IALog
+import com.imurluck.apm.core.utils.Reflection
 import com.imurluck.monitor.fps.utils.sdkVersionNotSupport
 import java.lang.reflect.Method
+import java.util.*
 
 /**
  * for
@@ -23,7 +26,10 @@ class FpsMonitor: Monitor {
 
     private val addCallbackMethod: Array<Method?> = arrayOfNulls<Method?>(3)
 
+    private lateinit var proxyFrameHandler: Handler
+
     override fun install(application: Application) {
+        Reflection.exemptAll()
         if (!reflected(application)) {
             return
         }
@@ -38,6 +44,7 @@ class FpsMonitor: Monitor {
             }
             choreographer = reference!!
         }
+        hookFrameHandler()
         lateInitNotNull<Any>(choreographer.getField(FIELD_LOCK)).apply {
             if (isNull) {
                 sdkVersionNotSupport()
@@ -81,6 +88,17 @@ class FpsMonitor: Monitor {
         return true
     }
 
+    private fun hookFrameHandler(): Boolean {
+        lateInitNotNull<Handler>(choreographer.getField(FIELD_HANDLER)).apply {
+            if (isNull) {
+                return false
+            }
+            proxyFrameHandler = ProxyFrameHandler(reference!!)
+            choreographer.setField(proxyFrameHandler, FIELD_HANDLER)
+        }
+        return true
+    }
+
     private fun startMonitor() {
         insertCallback(FRAME_CALLBACK_INPUT, Runnable {
             IALog.e(TAG, "callback input")
@@ -112,6 +130,8 @@ class FpsMonitor: Monitor {
         private const val FIELD_CALLBACK_QUEUE = "mCallbackQueues"
 
         private const val METHOD_ADD_CALLBACK = "addCallbackLocked"
+
+        private const val FIELD_HANDLER = "mHandler"
 
         /**
          * vertical V_SYNC pulse received, callback will invoke

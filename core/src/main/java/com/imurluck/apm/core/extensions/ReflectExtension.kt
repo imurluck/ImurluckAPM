@@ -7,14 +7,28 @@ import java.lang.reflect.Method
  * get field from an object by reflect
  */
 inline fun <reified T> Any.getField(name: String): T? {
-    return try {
+//    return try {
+//        val field = this.javaClass.getDeclaredField(name)
+//        if (!field.isAccessible) {
+//            field.isAccessible = true
+//        }
+//        field.get(this) as T
+//    } catch (e: Exception) {
+//        null
+//    }
+    return RealReflectHelper.getField(this, name)
+}
+
+/**
+ * set field
+ */
+fun Any.setField(arg: Any, name: String) {
+    try {
         val field = this.javaClass.getDeclaredField(name)
-        if (!field.isAccessible) {
-            field.isAccessible = true
-        }
-        field.get(this) as T
+        field.isAccessible = true
+        field.set(this, arg)
     } catch (e: Exception) {
-        null
+        e.printStackTrace()
     }
 }
 
