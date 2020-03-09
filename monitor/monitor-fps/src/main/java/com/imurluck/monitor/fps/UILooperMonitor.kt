@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Looper
 import android.util.Printer
 import com.imurluck.apm.core.extensions.getField
+import com.imurluck.apm.core.log.IALog
 
 /**
  * for hook main looper's logging
@@ -12,6 +13,8 @@ import com.imurluck.apm.core.extensions.getField
  * create at 2020-03-07
  */
 object UILooperMonitor : Monitor {
+
+    private const val TAG = "UILooperMonitor"
 
     private const val FIELD_LOGGING = "mLogging"
 
@@ -33,6 +36,7 @@ object UILooperMonitor : Monitor {
     private fun hookLogging(): Boolean {
         originLogging = Looper.getMainLooper().getField(FIELD_LOGGING)
         proxyLogging = Printer {
+            IALog.e(TAG, "print")
             originLogging?.println(it)
             if (it.isEmpty() || (it[0] != '<' && it[0] != '>')) {
                 return@Printer
@@ -65,5 +69,4 @@ object UILooperMonitor : Monitor {
 
         fun onFinishHandle()
     }
-
 }

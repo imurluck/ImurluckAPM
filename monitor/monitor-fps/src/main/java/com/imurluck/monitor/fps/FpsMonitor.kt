@@ -26,14 +26,75 @@ class FpsMonitor: Monitor {
 
     private val addCallbackMethod: Array<Method?> = arrayOfNulls<Method?>(3)
 
-    private lateinit var proxyFrameHandler: Handler
+    var canceled = false
+
+    private var isStartFrameMonitor = false
+    private var isInFrame = false
+
+    private val fpsCalculator = FPSCalculator().apply {
+        callback = object : FPSCalculator.Callback {
+            override fun onFPSCalculate(fps: Int) {
+                IALog.e(TAG, "fps = $fps")
+            }
+
+        }
+    }
 
     override fun install(application: Application) {
         Reflection.exemptAll()
         if (!reflected(application)) {
             return
         }
-        startMonitor()
+        addUILooperMonitorListener()
+    }
+
+    private fun addUILooperMonitorListener() {
+        UILooperMonitor.addMsgListener(object : UILooperMonitor.LooperMsgListener {
+
+            override fun onBeforeHandle() {
+                if (!canceled) {
+                    startFrameMonitor()
+                }
+            }
+
+            override fun onFinishHandle() {
+                if (!canceled) {
+                    endFrameMonitor()
+                }
+            }
+
+        })
+    }
+
+    private fun startFrameMonitor() {
+        if (isStartFrameMonitor) {
+            return
+        }
+        isStartFrameMonitor = true
+        insertCallback(FRAME_CALLBACK_INPUT, Runnable {
+            onFrameStart()
+        })
+        insertCallback(FRAME_CALLBACK_ANIMATION, Runnable {
+            IALog.e(TAG, "callback animation")
+        })
+        insertCallback(FRAME_CALLBACK_TRAVERSAL, Runnable {
+            IALog.e(TAG, "callback traversal")
+
+        })
+    }
+
+    private fun endFrameMonitor() {
+        if (!isStartFrameMonitor || !isInFrame) {
+            return
+        }
+        fpsCalculator.onFrameEnd()
+        isStartFrameMonitor = false
+        isInFrame = false
+    }
+
+    private fun onFrameStart() {
+        isInFrame = true
+        fpsCalculator.onFrameStart()
     }
 
     private fun reflected(application: Application): Boolean {
@@ -44,7 +105,6 @@ class FpsMonitor: Monitor {
             }
             choreographer = reference!!
         }
-        hookFrameHandler()
         lateInitNotNull<Any>(choreographer.getField(FIELD_LOCK)).apply {
             if (isNull) {
                 sdkVersionNotSupport()
@@ -86,29 +146,6 @@ class FpsMonitor: Monitor {
             }
         }
         return true
-    }
-
-    private fun hookFrameHandler(): Boolean {
-        lateInitNotNull<Handler>(choreographer.getField(FIELD_HANDLER)).apply {
-            if (isNull) {
-                return false
-            }
-            proxyFrameHandler = ProxyFrameHandler(reference!!)
-            choreographer.setField(proxyFrameHandler, FIELD_HANDLER)
-        }
-        return true
-    }
-
-    private fun startMonitor() {
-        insertCallback(FRAME_CALLBACK_INPUT, Runnable {
-            IALog.e(TAG, "callback input")
-        })
-        insertCallback(FRAME_CALLBACK_ANIMATION, Runnable {
-            IALog.e(TAG, "callback animation")
-        })
-        insertCallback(FRAME_CALLBACK_TRAVERSAL, Runnable {
-            IALog.e(TAG, "callback traversal")
-        })
     }
 
     /**
