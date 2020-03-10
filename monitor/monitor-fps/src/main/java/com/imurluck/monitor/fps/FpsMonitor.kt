@@ -75,10 +75,9 @@ class FpsMonitor: Monitor {
             onFrameStart()
         })
         insertCallback(FRAME_CALLBACK_ANIMATION, Runnable {
-            IALog.e(TAG, "callback animation")
+
         })
         insertCallback(FRAME_CALLBACK_TRAVERSAL, Runnable {
-            IALog.e(TAG, "callback traversal")
 
         })
     }

@@ -23,7 +23,8 @@ internal class FPSCalculator {
             lastFPSCollectTime = frameEndTime
             return
         }
-        //application probably not doing anything, onFrame method in Choreographer has't invoked over one second,
+        //application probably not doing anything or main thread is blocking,
+        //onFrame method in Choreographer has't invoked over one second,
         //so, don't collect this time
         if (frameEndTime - lastFPSCollectTime >= NANOS_PER_SECONDS) {
             lastFPSCollectTime = frameEndTime

@@ -36,7 +36,6 @@ object UILooperMonitor : Monitor {
     private fun hookLogging(): Boolean {
         originLogging = Looper.getMainLooper().getField(FIELD_LOGGING)
         proxyLogging = Printer {
-            IALog.e(TAG, "print")
             originLogging?.println(it)
             if (it.isEmpty() || (it[0] != '<' && it[0] != '>')) {
                 return@Printer
