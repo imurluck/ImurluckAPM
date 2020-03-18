@@ -1,3 +1,4 @@
+include ':imurluck-apm-plugin'
 
 def PROJECT_APP = ':app'
 def PROJECT_CORE = ':core'
