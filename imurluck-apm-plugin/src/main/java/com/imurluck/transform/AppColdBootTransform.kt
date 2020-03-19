@@ -3,6 +3,8 @@ package com.imurluck.transform
 import com.android.build.api.transform.*
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.imurluck.base.IALog
+import com.imurluck.base.traversalInput
+import java.io.File
 
 /**
  * for
@@ -22,7 +24,21 @@ class AppColdBootTransform : Transform() {
     override fun getScopes(): MutableSet<in QualifiedContent.Scope> = TransformManager.SCOPE_FULL_PROJECT
 
     override fun transform(transformInvocation: TransformInvocation?) {
-        IALog.log("start to transform app cold boot")
+        IALog.i("start to transform app cold boot")
+        transformInvocation?.inputs?.forEach { input ->
+            input.directoryInputs?.forEach { directoryInput ->
+                println("directory path is " + directoryInput.file.absolutePath)
+                directoryInput.traversalInput(transformInvocation)
+//                if (directoryInput.file.isDirectory) {
+//                    directoryInput.file.
+//                }
+//                val destFile = transformInvocation.outputProvider.getContentLocation(name, inputTypes, scopes, Format.DIRECTORY)
+//                file.copyTo(destFile)
+            }
+//            input.jarInputs?.forEach { jarInput ->
+//                println("jar file path is " + jarInput.file.absolutePath)
+//            }
+        }
     }
 
     companion object {
