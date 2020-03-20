@@ -1,30 +1,40 @@
 package com.imurluck.base
 
-import com.android.build.api.transform.DirectoryInput
-import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.QualifiedContent
-import com.android.build.api.transform.TransformInvocation
 import java.io.File
+import java.io.InputStream
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
 
-internal fun QualifiedContent.traversalInput(transformInvocation: TransformInvocation) {
-    when (this) {
-        is DirectoryInput -> traversalDirectoryInput(file)
-        is JarInput -> traversalJarInput(file)
-    }
-}
-
-private fun traversalDirectoryInput(file: File) {
-    if (file.isDirectory) {
-        println("directory is ${file.absolutePath}")
-        file.listFiles()?.forEach { it ->
-            traversalDirectoryInput(it)
+/**
+ * traversal classes from local directory
+ */
+internal fun QualifiedContent.traversalDirectoryInput(
+    inputFile: File,
+    callback: (InputStream, String) -> Unit
+) {
+    if (inputFile.isDirectory) {
+        inputFile.listFiles()?.forEach { it ->
+            traversalDirectoryInput(it, callback)
         }
-    } else if (file.isFile) {
-        println("directory file path is ${file.absolutePath}")
+    } else if (inputFile.isFile) {
+        inputFile.inputStream().use { fis ->
+            callback(fis, inputFile.name)
+        }
+
     }
 }
 
-private fun traversalJarInput(file: File) {
-
+/**
+ * traversal classes from jar file
+ * [transform]
+ */
+internal fun QualifiedContent.traversalJarInput(
+    callback: (JarFile, JarEntry) -> Unit
+) {
+    val jarFile = JarFile(file)
+    jarFile.entries().asSequence().forEach { jarEntry ->
+        callback(jarFile, jarEntry)
+    }
 }
 
