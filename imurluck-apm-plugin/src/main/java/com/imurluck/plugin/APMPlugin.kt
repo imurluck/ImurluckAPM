@@ -2,6 +2,7 @@ package com.imurluck.plugin
 
 import com.android.build.gradle.AppExtension
 import com.imurluck.transform.APMTransform
+import com.imurluck.transform.AppColdBootConsumer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -14,7 +15,9 @@ class APMPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.extensions.findByType<AppExtension>(AppExtension::class.java)?.apply {
-            registerTransform(APMTransform())
+            registerTransform(APMTransform().apply {
+                registerTransformConsumer(AppColdBootConsumer())
+            })
         }
     }
 }

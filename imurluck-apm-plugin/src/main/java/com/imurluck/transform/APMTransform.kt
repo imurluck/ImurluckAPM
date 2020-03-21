@@ -30,6 +30,12 @@ class APMTransform : Transform() {
 
     override fun getScopes(): MutableSet<in QualifiedContent.Scope> = TransformManager.SCOPE_FULL_PROJECT
 
+    fun registerTransformConsumer(consumer: TransformConsumer) {
+        if (!consumerList.contains(consumer)) {
+            consumerList.add(consumer)
+        }
+    }
+
     override fun transform(transformInvocation: TransformInvocation?) {
         IALog.i("start to transform app cold boot")
         transformInvocation?.inputs?.forEach { input ->
@@ -113,7 +119,7 @@ class APMTransform : Transform() {
 
     companion object {
 
-        private const val TRANSFORM_NAME = "AppColdBootTransform"
+        private const val TRANSFORM_NAME = "APMTransform"
 
         private const val FILL_SUFFIX_CLASS = "class"
 
